@@ -43,11 +43,14 @@ param(
 )
 
 $desktop = if ($AllUsers) { Join-Path $env:Public 'Desktop' } else { [Environment]::GetFolderPath('Desktop') }
-$wtPath = (Get-Command wt.exe -ErrorAction SilentlyContinue)?.Source
+# Regular Windows Terminal
+$wtPath = (Get-Command wt.exe -ErrorAction SilentlyContinue).Source
 if (-not $wtPath) { $wtPath = Join-Path $env:LOCALAPPDATA 'Microsoft\WindowsApps\wt.exe' }
 $useWt  = Test-Path $wtPath
-$pwsh = (Get-Command pwsh -ErrorAction SilentlyContinue)?.Source
-$ps   = (Get-Command powershell.exe -ErrorAction SilentlyContinue)?.Source
+# PowerShell 7+
+$pwsh = (Get-Command pwsh -ErrorAction SilentlyContinue).Source
+# PowerShell 5
+$ps   = (Get-Command powershell.exe -ErrorAction SilentlyContinue).Source
 $shell = New-Object -ComObject WScript.Shell
 
 $pathsToProcess = if ($Here) {
@@ -75,7 +78,7 @@ foreach ($p in $pathsToProcess) {
     $sc.WorkingDirectory= ''
     $sc.IconLocation    = "$env:SystemRoot\System32\WindowsPowerShell\v1.0\powershell.exe,0"
   } else {
-    $target = $pwsh ?? $ps
+    $target = if ($pwsh) { $pwsh } else { $ps }
     if (-not $target) { throw "No shell found (pwsh/powershell.exe)"; }
 
     $sc.TargetPath       = $target
